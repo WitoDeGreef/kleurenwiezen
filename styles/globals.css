@@ -1,0 +1,301 @@
+/* ====== RESET ====== */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  padding: 0;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  background-color: #f5f7fa;
+  color: #111;
+}
+
+/* ====== LAYOUT ====== */
+
+.section-ourmenu {
+  min-height: 100vh;
+  padding: 40px 20px;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.t-center {
+  text-align: center;
+}
+
+.title-section-ourmenu {
+  margin-bottom: 30px;
+}
+
+.tit2 {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+/* ====== SIMPLE GRID (Bootstrap-like) ====== */
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.col-md-8 {
+  flex: 2;
+  min-width: 300px;
+}
+
+.col-md-4 {
+  flex: 1;
+  min-width: 250px;
+}
+
+.col-sm-6 {
+  flex: 1 1 48%;
+}
+
+.col-12 {
+  flex: 1 1 100%;
+}
+
+/* ====== CARD ====== */
+
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #e3e6ea;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+  margin-top: 20px;
+}
+
+/* ====== BUTTONS ====== */
+
+button,
+a.button-link {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #d0d5dd;
+  background: white;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.15s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+button:hover,
+a.button-link:hover {
+  background: #f2f4f7;
+}
+
+button.primary {
+  background: #111;
+  color: white;
+  border-color: #111;
+}
+
+button.primary:hover {
+  background: #000;
+}
+
+button.danger {
+  background: #b91c1c;
+  color: white;
+  border-color: #b91c1c;
+}
+
+button.danger:hover {
+  background: #991b1b;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ====== INPUTS ====== */
+
+input,
+select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #d0d5dd;
+  font-size: 14px;
+  background: white;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: #111;
+}
+
+/* ====== TABLE ====== */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+
+th {
+  text-align: left;
+  padding: 10px;
+  border-bottom: 1px solid #e3e6ea;
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+td {
+  padding: 10px;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 600;
+}
+
+/* ====== NAV LINKS ====== */
+
+.nav-links {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 15px;
+}
+
+/* ====== RESPONSIVE ====== */
+
+@media (max-width: 768px) {
+  .row {
+    flex-direction: column;
+  }
+
+  .col-md-8,
+  .col-md-4 {
+    flex: 1 1 100%;
+  }
+}
+
+
+h2.section-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.section-title {
+  margin-bottom: 12px;
+}
+
+
+/* ====== FORM LABEL ====== */
+.form-label {
+  display: block;
+  font-size: 13px;
+  opacity: 0.8;
+  margin-bottom: 6px;
+}
+
+/* ====== SPACING HELPERS ====== */
+.mt-10 { margin-top: 10px; }
+.mt-12 { margin-top: 12px; }
+.mt-20 { margin-top: 20px; }
+
+.grid {
+  display: grid;
+  gap: 10px;
+}
+
+.grid-2 {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+/* ====== FLEX HELPERS ====== */
+.flex {
+  display: flex;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.gap-8 {
+  gap: 8px;
+}
+
+.gap-10 {
+  gap: 10px;
+}
+
+.disabled-link {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+
+th,
+.app-table th {
+  text-align: left;
+  padding: 10px;
+  border-bottom: 1px solid #e3e6ea;
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+td,
+.app-table td {
+  padding: 10px;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.input-xs { max-width: 120px; }
+.input-sm { max-width: 220px; }
+.input-md { max-width: 320px; }
+.input-lg { max-width: 480px; }
+
+button.active {
+  border: 1px solid #111;
+  font-weight: 600;
+  background: #f2f4f7;
+}
+
+a.active {
+  border: 1px solid #111;
+  font-weight: 600;
+  background: #f2f4f7;
+}
+
+button.danger {
+  background: #b91c1c;
+  color: white;
+  border-color: #b91c1c;
+}
+
+button.danger:hover {
+  background: #991b1b;
+}
+
+button.primary,
+a.primary {
+  background: #111;
+  color: white;
+  border-color: #111;
+  font-weight: 600;
+}
