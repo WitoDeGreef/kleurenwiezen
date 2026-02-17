@@ -16,6 +16,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const [appState, setAppState] = useState(defaultAppState());
   const [isLoaded, setIsLoaded] = useState(false);
+  const [penaltyEditValues, setPenaltyEditValues] = useState({});
 
   useEffect(() => {
     const loaded = loadAppState();
@@ -39,6 +40,24 @@ export default function SettingsPage() {
 
   function updateGame(nextGame) {
     setAppState((s) => upsertGame(s, nextGame));
+  }
+
+  function handlePenaltyChange(field, value) {
+    setPenaltyEditValues(prev => ({ ...prev, [field]: value }));
+  }
+
+  function handlePenaltyBlur(field, value) {
+    const numValue = value === "" ? 0 : parseInt(value, 10);
+    updateGame({ ...game, [field]: isNaN(numValue) ? 0 : numValue });
+    setPenaltyEditValues(prev => {
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  }
+
+  function getPenaltyDisplayValue(field, actualValue) {
+    return penaltyEditValues.hasOwnProperty(field) ? penaltyEditValues[field] : (actualValue ?? 0);
   }
 
   if (!game || appState.games.length === 0) {
@@ -89,25 +108,31 @@ export default function SettingsPage() {
             <label className="form-label" style={{ display: "block", marginBottom: 12 }}>Strafpunten verkeerd delen</label>
             <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
               <div>
-                <label style={{ fontSize: 13, opacity: 0.8, marginRight: 8 }}>4 spelers:</label>
+                <label style={{ fontSize: 14, opacity: 0.8, marginRight: 8 }}>4 spelers:</label>
                 <input
                   type="number"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   min={0}
-                  value={game.dealerPenalty4Players ?? 3}
-                  onChange={(e) => updateGame({ ...game, dealerPenalty4Players: e.target.value ? parseInt(e.target.value, 10) : 0 })}
+                  value={getPenaltyDisplayValue('dealerPenalty4Players', game.dealerPenalty4Players)}
+                  onChange={(e) => handlePenaltyChange('dealerPenalty4Players', e.target.value)}
+                  onBlur={(e) => handlePenaltyBlur('dealerPenalty4Players', e.target.value)}
                   className="input-xs"
-                  style={{ width: "80px" }}
+                  style={{ width: "100px" }}
                 />
               </div>
               <div>
-                <label style={{ fontSize: 13, opacity: 0.8, marginRight: 8 }}>5 spelers:</label>
+                <label style={{ fontSize: 14, opacity: 0.8, marginRight: 8 }}>5 spelers:</label>
                 <input
                   type="number"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   min={0}
-                  value={game.dealerPenalty5Players ?? 4}
-                  onChange={(e) => updateGame({ ...game, dealerPenalty5Players: e.target.value ? parseInt(e.target.value, 10) : 0 })}
+                  value={getPenaltyDisplayValue('dealerPenalty5Players', game.dealerPenalty5Players)}
+                  onChange={(e) => handlePenaltyChange('dealerPenalty5Players', e.target.value)}
+                  onBlur={(e) => handlePenaltyBlur('dealerPenalty5Players', e.target.value)}
                   className="input-xs"
-                  style={{ width: "80px" }}
+                  style={{ width: "100px" }}
                 />
               </div>
             </div>

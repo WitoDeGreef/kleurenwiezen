@@ -144,7 +144,15 @@ export default function NewRoundForm({ game, onUpdateGame }) {
 
         <div>
           <label className="form-label">Vermenigvuldiger</label>
-          <input type="number" min={1} max={20} value={multiplier} onChange={(e) => setMultiplier(e.target.value)}/>
+          <input 
+            type="number" 
+            inputMode="numeric"
+            pattern="[0-9]*"
+            min={1} 
+            max={20} 
+            value={multiplier} 
+            onChange={(e) => setMultiplier(e.target.value)}
+          />
         </div>
 
         {hasTrumps && (
@@ -153,7 +161,9 @@ export default function NewRoundForm({ game, onUpdateGame }) {
               Aantal troeven {gameType.minTrumps > 0 ? `(min ${gameType.minTrumps})` : '(variabel)'}
             </label>
             <input 
-              type="number" 
+              type="number"
+              inputMode="numeric"
+              pattern="[0-9]*"
               min={gameType.minTrumps || 0} 
               max={13} 
               value={trumpCount} 
@@ -185,7 +195,7 @@ export default function NewRoundForm({ game, onUpdateGame }) {
             );
           })}
         </div>
-        <div style={{ marginTop: 8, fontSize: 13, opacity: 0.75 }}>
+        <div style={{ marginTop: 10, fontSize: 14, opacity: 0.8, lineHeight: 1.5 }}>
           Verdeling: <b>+{total}</b> verdeeld over winnaars, <b>-{total}</b> verdeeld over anderen.
           {usesAllTrumpsBonus && (
             <span> (Alle troeven bonus: {gameType.allTrumpsBonus} punten)</span>

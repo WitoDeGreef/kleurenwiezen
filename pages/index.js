@@ -48,7 +48,7 @@ export default function Home() {
             </button>
           </div>
 
-          <div style={{ marginTop: 10, opacity: 0.7, fontSize: 13 }}>
+          <div style={{ marginTop: 10, opacity: 0.75, fontSize: 14 }}>
             Lokaal opgeslagen op dit apparaat (localStorage).
           </div>
         </div>

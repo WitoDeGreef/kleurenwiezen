@@ -71,23 +71,28 @@ export default function GamePage() {
 
         <div className="card">
           <h2 className="section-title">Huidige gever</h2>
-          <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+          <div style={{ marginTop: 10, display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
             {game.players.map((p, idx) => (
               <div
                 key={p.id}
                 style={{
-                  padding: "8px 16px",
-                  borderRadius: "4px",
+                  padding: "12px 20px",
+                  borderRadius: "8px",
                   backgroundColor: idx === (game.currentDealerIndex || 0) ? "#f59e0b" : "#f3f4f6",
                   color: idx === (game.currentDealerIndex || 0) ? "#fff" : "#374151",
                   fontWeight: idx === (game.currentDealerIndex || 0) ? "600" : "normal",
+                  fontSize: "16px",
+                  minHeight: "48px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
                 {idx === (game.currentDealerIndex || 0) ? "🃏 " : ""}{p.name}
               </div>
             ))}
           </div>
-          <div style={{ marginTop: 8, opacity: 0.7, fontSize: 13 }}>
+          <div style={{ marginTop: 10, opacity: 0.7, fontSize: 14 }}>
             De gever roteert automatisch na elke ronde.
           </div>
         </div>

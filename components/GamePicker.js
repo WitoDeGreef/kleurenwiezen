@@ -15,10 +15,10 @@ export default function GamePicker({ games, currentGameId, onPick, onDelete }) {
               <button onClick={() => onPick(g.id)} className={g.id === currentGameId ? "primary" : ""}>
                 {g.title || "Spel"} · {new Date(g.createdAt).toLocaleString()}
               </button>
-              <span style={{ opacity: 0.7, fontSize: 13 }}>
+              <span style={{ opacity: 0.75, fontSize: 14 }}>
                 Spelers: {g.players?.length || 0} · Rondes: {g.rounds?.length || 0}
               </span>
-              <span style={{ opacity: 0.7, fontSize: 13 }}>
+              <span style={{ opacity: 0.75, fontSize: 14 }}>
                 ({g.players?.map(p => p.name).join(", ") || "-"})
               </span>
               <button onClick={() => onDelete(g.id)} className="danger">

@@ -31,7 +31,7 @@ export default function History({ state, setState }) {
                   <td style={tdStyle({ mono: true })}>{new Date(r.ts).toLocaleString()}</td>
                   <td style={tdStyle()}>
                     {(gt?.name || "?")} ({(gt?.basePoints || 0) * (r.multiplier || 1)})
-                    {r.note ? <div style={{ fontSize: 12, opacity: 0.75 }}>{r.note}</div> : null}
+                    {r.note ? <div style={{ fontSize: 13, opacity: 0.8 }}>{r.note}</div> : null}
                   </td>
                   <td style={tdStyle()}>{decl?.name || "?"}</td>
                   <td style={tdStyle()}>{winners.join(", ") || "-"}</td>
