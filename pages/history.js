@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/router";
 import Nav from "../components/Nav";
 import HistoryTable from "../components/HistoryTable";
 import {
@@ -10,6 +11,7 @@ import {
 } from "../lib/storage";
 
 export default function HistoryPage() {
+  const router = useRouter();
   const [appState, setAppState] = useState(defaultAppState());
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -25,13 +27,19 @@ export default function HistoryPage() {
     }
   }, [appState, isLoaded]);
 
+  useEffect(() => {
+    if (isLoaded && appState.games.length === 0) {
+      router.push("/");
+    }
+  }, [isLoaded, appState.games.length, router]);
+
   const game = useMemo(() => getCurrentGame(appState), [appState]);
 
   function updateGame(nextGame) {
     setAppState((s) => upsertGame(s, nextGame));
   }
 
-  if (!game) {
+  if (!game || appState.games.length === 0) {
     return (
       <section className="section-ourmenu bg2-pattern p-t-50 p-b-50">
         <div className="container">
@@ -46,7 +54,7 @@ export default function HistoryPage() {
     <section className="section-ourmenu bg2-pattern p-t-50 p-b-50">
       <div className="container">
         <span className="tit2 t-center">Geschiedenis</span>
-        <Nav current="history" />
+        <Nav current="history" hasGames={appState.games.length > 0} />
         <HistoryTable game={game} onUpdateGame={updateGame} />
       </div>
     </section>

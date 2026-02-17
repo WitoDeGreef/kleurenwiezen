@@ -16,7 +16,6 @@ export default function HistoryTable({ game, onUpdateGame }) {
             <tr>
               <th >Tijd</th>
               <th >Speltype</th>
-              <th >Aanvrager</th>
               <th >Winnaars</th>
               <th >Δ</th>
               <th ></th>
@@ -24,18 +23,62 @@ export default function HistoryTable({ game, onUpdateGame }) {
           </thead>
           <tbody>
             {game.rounds.map((r) => {
+              // Handle dealer penalty rounds
+              if (r.isDealerPenalty) {
+                const dealer = game.players.find((p) => p.id === r.dealerId);
+                return (
+                  <tr key={r.id}>
+                    <td className="mono">{new Date(r.ts).toLocaleString()}</td>
+                    <td >
+                      <strong>Verkeerd gedeeld</strong>
+                      {r.note ? <div style={{ fontSize: 12, opacity: 0.75 }}>{r.note}</div> : null}
+                    </td>
+                    <td >-</td>
+                    <td className="mono">
+                      {game.players.map((p) => {
+                        const d = (r.deltas && r.deltas[p.id]) || 0;
+                        return (
+                          <div key={p.id}>
+                            {p.name}: {d >= 0 ? `+${d}` : d}
+                          </div>
+                        );
+                      })}
+                    </td>
+                    <td >
+                      <button onClick={() => deleteRound(r.id)} className="danger">
+                        Verwijderen
+                      </button>
+                    </td>
+                  </tr>
+                );
+              }
+
+              // Handle regular game rounds
               const gt = game.gameTypes.find((g) => g.id === r.gameTypeId);
-              const decl = game.players.find((p) => p.id === r.declarerId);
               const winners = game.players.filter((p) => r.winnerIds.includes(p.id)).map((p) => p.name);
+              
+              // Check if all trumps bonus applies
+              const usesAllTrumpsBonus = gt?.allTrumpsBonus != null && r.trumpCount === 13;
+              
+              // Calculate trump bonus if applicable
+              const hasTrumps = gt?.minTrumps != null && gt?.extraPointsPerTrump != null && r.trumpCount;
+              const trumpBonus = usesAllTrumpsBonus 
+                ? 0
+                : (hasTrumps && r.trumpCount > (gt.minTrumps || 0)
+                  ? (r.trumpCount - (gt.minTrumps || 0)) * (gt.extraPointsPerTrump || 0)
+                  : 0);
+              const effectivePoints = usesAllTrumpsBonus 
+                ? gt.allTrumpsBonus
+                : (gt?.basePoints || 0) + trumpBonus;
 
               return (
                 <tr key={r.id}>
                   <td className="mono">{new Date(r.ts).toLocaleString()}</td>
                   <td >
-                    {(gt?.name || "?")} ({(gt?.basePoints || 0) * (r.multiplier || 1)})
+                    {(gt?.name || "?")} ({effectivePoints * (r.multiplier || 1)})
+                    {r.trumpCount && <div style={{ fontSize: 12, opacity: 0.75 }}>{r.trumpCount} troeven</div>}
                     {r.note ? <div style={{ fontSize: 12, opacity: 0.75 }}>{r.note}</div> : null}
                   </td>
-                  <td >{decl?.name || "?"}</td>
                   <td >{winners.join(", ") || "-"}</td>
                   <td className="mono">
                     {game.players.map((p) => {

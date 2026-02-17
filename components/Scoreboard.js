@@ -5,13 +5,6 @@ import { computeTotals } from "../lib/scoring";
 export default function Scoreboard({ game, onUpdateGame }) {
   const totals = computeTotals(game.players, game.rounds);
 
-  function updatePlayerName(pid, name) {
-    onUpdateGame({
-      ...game,
-      players: game.players.map((p) => (p.id === pid ? { ...p, name } : p)),
-    });
-  }
-
   const playersWithTotals = game.players
     .map((p) => ({ p, total: totals[p.id] || 0 }));
 
@@ -30,21 +23,12 @@ export default function Scoreboard({ game, onUpdateGame }) {
           <tbody>
             {playersWithTotals.map(({ p, total }) => (
               <tr key={p.id}>
-                <td >
-                  <input
-                    value={p.name}
-                    onChange={(e) => updatePlayerName(p.id, e.target.value)}
-                    className="input-sm"
-                  />
-                </td>
+                <td >{p.name}</td>
                 <td >{total}</td>
               </tr>
             ))}
           </tbody>
         </table>
-      </div>
-      <div style={{ marginTop: 8, opacity: 0.7, fontSize: 13 }}>
-        Tip: hernoem spelers hier of in Instellingen.
       </div>
     </div>
   );

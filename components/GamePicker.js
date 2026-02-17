@@ -12,13 +12,16 @@ export default function GamePicker({ games, currentGameId, onPick, onDelete }) {
         <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
           {games.map((g) => (
             <div key={g.id} style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-              <button onClick={() => onPick(g.id)} style={btn({ primary: g.id === currentGameId })}>
+              <button onClick={() => onPick(g.id)} className={g.id === currentGameId ? "primary" : ""}>
                 {g.title || "Spel"} · {new Date(g.createdAt).toLocaleString()}
               </button>
               <span style={{ opacity: 0.7, fontSize: 13 }}>
                 Spelers: {g.players?.length || 0} · Rondes: {g.rounds?.length || 0}
               </span>
-              <button onClick={() => onDelete(g.id)} style={btn({ danger: true })}>
+              <span style={{ opacity: 0.7, fontSize: 13 }}>
+                ({g.players?.map(p => p.name).join(", ") || "-"})
+              </span>
+              <button onClick={() => onDelete(g.id)} className="danger">
                 Verwijderen
               </button>
             </div>

@@ -55,7 +55,7 @@ export default function NewGamePage() {
     <section className="section-ourmenu bg2-pattern p-t-50 p-b-50">
       <div className="container">
         <span className="tit2 t-center">Nieuw spel</span>
-        <Nav current="" />
+        <Nav current="" hasGames={appState.games.length > 0} />
 
         <div className="card">
           <h2 className="section-title">Spelersnamen</h2>

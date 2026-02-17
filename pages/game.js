@@ -28,13 +28,19 @@ export default function GamePage() {
     }
   }, [appState, isLoaded]);
 
+  useEffect(() => {
+    if (isLoaded && appState.games.length === 0) {
+      router.push("/");
+    }
+  }, [isLoaded, appState.games.length, router]);
+
   const game = useMemo(() => getCurrentGame(appState), [appState]);
 
   function updateGame(nextGame) {
     setAppState((s) => upsertGame(s, nextGame));
   }
 
-  if (!game) {
+  if (!game || appState.games.length === 0) {
     return (
       <section className="section-ourmenu bg2-pattern p-t-50 p-b-50">
         <div className="container">
@@ -51,11 +57,40 @@ export default function GamePage() {
     );
   }
 
+  const currentDealer = game.players[(game.currentDealerIndex || 0) % game.players.length];
+
+  function updateGame(nextGame) {
+    setAppState((s) => upsertGame(s, nextGame));
+  }
+
   return (
     <section className="section-ourmenu bg2-pattern p-t-50 p-b-50">
       <div className="container">
         <span className="tit2 t-center">Huidig spel</span>
-        <Nav current="game" />
+        <Nav current="game" hasGames={appState.games.length > 0} />
+
+        <div className="card">
+          <h2 className="section-title">Huidige gever</h2>
+          <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            {game.players.map((p, idx) => (
+              <div
+                key={p.id}
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: "4px",
+                  backgroundColor: idx === (game.currentDealerIndex || 0) ? "#f59e0b" : "#f3f4f6",
+                  color: idx === (game.currentDealerIndex || 0) ? "#fff" : "#374151",
+                  fontWeight: idx === (game.currentDealerIndex || 0) ? "600" : "normal",
+                }}
+              >
+                {idx === (game.currentDealerIndex || 0) ? "🃏 " : ""}{p.name}
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 8, opacity: 0.7, fontSize: 13 }}>
+            De gever roteert automatisch na elke ronde.
+          </div>
+        </div>
 
         <Scoreboard game={game} onUpdateGame={updateGame} />
         <NewRoundForm game={game} onUpdateGame={updateGame} />

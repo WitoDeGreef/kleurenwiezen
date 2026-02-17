@@ -1,8 +1,9 @@
-import Link from "next/link";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { defaultAppState, loadAppState, saveAppState } from "../lib/storage";
 
 export default function Home() {
+  const router = useRouter();
   const [appState, setAppState] = useState(defaultAppState());
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -30,16 +31,21 @@ export default function Home() {
         <div className="card">
           <h2 className="section-title">Start</h2>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 12 }}>
-            <Link href="/new-game" className="primary">Nieuw spel</Link>
-            {hasGames ? (
-              <Link href="/continue">Verder spelen</Link>
-            ) : (
-              <span className="disabled-link">Verder spelen</span>
-            )}
-
-            <Link href="/game" className={!appState.currentGameId ? "disabled-link" : ""} onClick={(e) => {
-              if (!appState.currentGameId) e.preventDefault();
-            }}>Huidig spel</Link>
+            <button onClick={() => router.push("/new-game")} className="primary">Nieuw spel</button>
+            <button 
+              onClick={() => hasGames && router.push("/continue")} 
+              className={!hasGames ? "disabled-link" : ""}
+              disabled={!hasGames}
+            >
+              Verder spelen
+            </button>
+            <button 
+              onClick={() => (appState.currentGameId && hasGames) && router.push("/game")} 
+              className={!appState.currentGameId || !hasGames ? "disabled-link" : ""}
+              disabled={!appState.currentGameId || !hasGames}
+            >
+              Huidig spel
+            </button>
           </div>
 
           <div style={{ marginTop: 10, opacity: 0.7, fontSize: 13 }}>

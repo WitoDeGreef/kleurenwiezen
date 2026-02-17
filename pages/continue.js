@@ -13,22 +13,28 @@ import {
 export default function ContinuePage() {
   const router = useRouter();
   const [appState, setAppState] = useState(defaultAppState());
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     const loaded = loadAppState();
     if (loaded) setAppState(loaded);
+    setIsLoaded(true);
   }, []);
+
+  useEffect(() => {
+    if (isLoaded) {
+      saveAppState(appState);
+    }
+  }, [appState, isLoaded]);
 
   function pick(id) {
     const next = setCurrentGame(appState, id);
-    saveAppState(next);
     setAppState(next);
     router.push("/game");
   }
 
   function del(id) {
     const next = deleteGame(appState, id);
-    saveAppState(next);
     setAppState(next);
   }
 
@@ -36,7 +42,7 @@ export default function ContinuePage() {
     <section className="section-ourmenu bg2-pattern p-t-50 p-b-50">
       <div className="container">
         <span className="tit2 t-center">Verder spelen</span>
-        <Nav current="" />
+        <Nav homeOnly />
         <GamePicker
           games={appState.games}
           currentGameId={appState.currentGameId}
