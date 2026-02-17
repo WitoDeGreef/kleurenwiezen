@@ -39,20 +39,20 @@ export default function SettingsPage() {
     return (
       <section className="section-ourmenu bg2-pattern p-t-50 p-b-50">
         <div className="container">
-          <span className="tit2 t-center">Settings</span>
-          <div className="card">No current game selected.</div>
+          <span className="tit2 t-center">Instellingen</span>
+          <div className="card">Geen huidig spel geselecteerd.</div>
         </div>
       </section>
     );
   }
 
   function resetRounds() {
-    if (!confirm("Reset all rounds for this game?")) return;
+    if (!confirm("Alle rondes van dit spel resetten?")) return;
     updateGame({ ...game, rounds: [] });
   }
 
   function deleteThisGame() {
-    if (!confirm("Delete this game entirely?")) return;
+    if (!confirm("Dit spel volledig verwijderen?")) return;
     const next = deleteGame(appState, game.id);
     saveAppState(next);
     setAppState(next);
@@ -62,16 +62,16 @@ export default function SettingsPage() {
   return (
     <section className="section-ourmenu bg2-pattern p-t-50 p-b-50">
       <div className="container">
-        <span className="tit2 t-center">Settings</span>
+        <span className="tit2 t-center">Instellingen</span>
         <Nav current="settings" />
 
         <div className="card">
           <div className="flex flex-wrap gap-8">
-            <button onClick={resetRounds} className="danger">Reset rounds</button>
-            <button onClick={deleteThisGame} className="danger">Delete game</button>
+            <button onClick={resetRounds} className="danger">Rondes resetten</button>
+            <button onClick={deleteThisGame} className="danger">Spel verwijderen</button>
           </div>
           <div style={{ marginTop: 10, opacity: 0.7, fontSize: 13 }}>
-            Note: removing players/game types is restricted if referenced by existing rounds.
+            Let op: spelers/speltypes verwijderen is beperkt als ze in bestaande rondes voorkomen.
           </div>
         </div>
 

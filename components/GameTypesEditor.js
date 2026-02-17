@@ -19,7 +19,7 @@ export default function GameTypesEditor({ game, onUpdateGame }) {
 
   function remove(gtid) {
     if (game.rounds.some((r) => r.gameTypeId === gtid)) {
-      alert("This game type is used in history. Delete those rounds or Reset first.");
+      alert("Dit speltype wordt gebruikt in de geschiedenis. Verwijder die rondes of Reset eerst.");
       return;
     }
     const remaining = game.gameTypes.filter((g) => g.id !== gtid);
@@ -29,13 +29,13 @@ export default function GameTypesEditor({ game, onUpdateGame }) {
 
   return (
     <div className="card">
-      <h2 className="section-title">Game types</h2>
+      <h2 className="section-title">Speltypes</h2>
       <div style={{ overflowX: "auto" }}>
         <table >
           <thead>
             <tr>
-              <th >Name</th>
-              <th >Base points</th>
+              <th >Naam</th>
+              <th >Basispunten</th>
               <th ></th>
             </tr>
           </thead>
@@ -55,7 +55,7 @@ export default function GameTypesEditor({ game, onUpdateGame }) {
                 </td>
                 <td >
                   <button onClick={() => remove(gt.id)} className="danger">
-                    Delete
+                    Verwijderen
                   </button>
                 </td>
               </tr>
@@ -65,7 +65,7 @@ export default function GameTypesEditor({ game, onUpdateGame }) {
       </div>
 
       <div style={{ marginTop: 10 }}>
-        <button onClick={add} >+ Game type</button>
+        <button onClick={add} >+ Speltype</button>
       </div>
     </div>
   );

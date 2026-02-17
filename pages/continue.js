@@ -35,7 +35,7 @@ export default function ContinuePage() {
   return (
     <section className="section-ourmenu bg2-pattern p-t-50 p-b-50">
       <div className="container">
-        <span className="tit2 t-center">Continue</span>
+        <span className="tit2 t-center">Verder spelen</span>
         <Nav current="" />
         <GamePicker
           games={appState.games}

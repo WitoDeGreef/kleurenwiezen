@@ -8,16 +8,16 @@ export default function HistoryTable({ game, onUpdateGame }) {
 
   return (
     <div className="card">
-      <h2 className="section-title">History</h2>
+      <h2 className="section-title">Geschiedenis</h2>
 
       <div style={{ overflowX: "auto" }}>
         <table >
           <thead>
             <tr>
-              <th >Time</th>
-              <th >Game type</th>
-              <th >Declarer</th>
-              <th >Winners</th>
+              <th >Tijd</th>
+              <th >Speltype</th>
+              <th >Aanvrager</th>
+              <th >Winnaars</th>
               <th >Δ</th>
               <th ></th>
             </tr>
@@ -49,7 +49,7 @@ export default function HistoryTable({ game, onUpdateGame }) {
                   </td>
                   <td >
                     <button onClick={() => deleteRound(r.id)} className="danger">
-                      Delete
+                      Verwijderen
                     </button>
                   </td>
                 </tr>
@@ -59,7 +59,7 @@ export default function HistoryTable({ game, onUpdateGame }) {
             {game.rounds.length === 0 && (
               <tr>
                 <td  colSpan={6}>
-                  No rounds yet.
+                  Nog geen rondes.
                 </td>
               </tr>
             )}

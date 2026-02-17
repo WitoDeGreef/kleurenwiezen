@@ -25,11 +25,11 @@ export default function NewGamePage() {
   }
 
   function addNameRow() {
-    setNames((prev) => (prev.length >= 6 ? prev : [...prev, ""]));
+    setNames((prev) => (prev.length >= 5 ? prev : [...prev, ""]));
   }
 
   function removeNameRow() {
-    setNames((prev) => (prev.length <= 3 ? prev : prev.slice(0, -1)));
+    setNames((prev) => (prev.length <= 4 ? prev : prev.slice(0, -1)));
   }
 
   function start() {
@@ -54,16 +54,16 @@ export default function NewGamePage() {
   return (
     <section className="section-ourmenu bg2-pattern p-t-50 p-b-50">
       <div className="container">
-        <span className="tit2 t-center">New game</span>
+        <span className="tit2 t-center">Nieuw spel</span>
         <Nav current="" />
 
         <div className="card">
-          <h2 className="section-title">Player names</h2>
+          <h2 className="section-title">Spelersnamen</h2>
 
           <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
             {names.map((n, i) => (
               <div key={i}>
-                <label className="form-label">Player {i + 1}</label>
+                <label className="form-label">Speler {i + 1}</label>
                 <input
                   value={n}
                   onChange={(e) => setName(i, e.target.value)}
@@ -74,9 +74,9 @@ export default function NewGamePage() {
           </div>
 
           <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
-            <button onClick={addNameRow}  disabled={names.length >= 6}>+ Player</button>
-            <button onClick={removeNameRow}  disabled={names.length <= 3}>- Player</button>
-            <button onClick={start} className="primary">Start game</button>
+            <button onClick={addNameRow}  disabled={names.length >= 5}>+ Speler</button>
+            <button onClick={removeNameRow}  disabled={names.length <= 4}>- Speler</button>
+            <button onClick={start} className="primary">Start spel</button>
           </div>
         </div>
       </div>

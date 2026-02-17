@@ -12,24 +12,23 @@ export default function Scoreboard({ game, onUpdateGame }) {
     });
   }
 
-  const sorted = game.players
-    .map((p) => ({ p, total: totals[p.id] || 0 }))
-    .sort((a, b) => b.total - a.total);
+  const playersWithTotals = game.players
+    .map((p) => ({ p, total: totals[p.id] || 0 }));
 
   return (
     <div className="card">
-      <h2 className="section-title">Scoreboard</h2>
+      <h2 className="section-title">Scorebord</h2>
 
       <div style={{ overflowX: "auto" }}>
         <table >
           <thead>
             <tr>
-              <th >Player</th>
-              <th >Total</th>
+              <th >Speler</th>
+              <th >Totaal</th>
             </tr>
           </thead>
           <tbody>
-            {sorted.map(({ p, total }) => (
+            {playersWithTotals.map(({ p, total }) => (
               <tr key={p.id}>
                 <td >
                   <input
@@ -45,7 +44,7 @@ export default function Scoreboard({ game, onUpdateGame }) {
         </table>
       </div>
       <div style={{ marginTop: 8, opacity: 0.7, fontSize: 13 }}>
-        Tip: rename players here or in Settings.
+        Tip: hernoem spelers hier of in Instellingen.
       </div>
     </div>
   );

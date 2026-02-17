@@ -38,12 +38,12 @@ export default function GamePage() {
     return (
       <section className="section-ourmenu bg2-pattern p-t-50 p-b-50">
         <div className="container">
-          <span className="tit2 t-center">Current game</span>
+          <span className="tit2 t-center">Huidig spel</span>
           <div className="card">
-            No current game selected.
+            Geen huidig spel geselecteerd.
             <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <button onClick={() => router.push("/new-game")} className="primary">New game</button>
-              <button onClick={() => router.push("/continue")} >Continue</button>
+              <button onClick={() => router.push("/new-game")} className="primary">Nieuw spel</button>
+              <button onClick={() => router.push("/continue")} >Verder spelen</button>
             </div>
           </div>
         </div>
@@ -54,7 +54,7 @@ export default function GamePage() {
   return (
     <section className="section-ourmenu bg2-pattern p-t-50 p-b-50">
       <div className="container">
-        <span className="tit2 t-center">Current game</span>
+        <span className="tit2 t-center">Huidig spel</span>
         <Nav current="game" />
 
         <Scoreboard game={game} onUpdateGame={updateGame} />

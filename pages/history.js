@@ -35,8 +35,8 @@ export default function HistoryPage() {
     return (
       <section className="section-ourmenu bg2-pattern p-t-50 p-b-50">
         <div className="container">
-          <span className="tit2 t-center">History</span>
-          <div className="card">No current game selected. Go to “Continue game”.</div>
+          <span className="tit2 t-center">Geschiedenis</span>
+          <div className="card">Geen huidig spel geselecteerd. Ga naar "Verder spelen".</div>
         </div>
       </section>
     );
@@ -45,7 +45,7 @@ export default function HistoryPage() {
   return (
     <section className="section-ourmenu bg2-pattern p-t-50 p-b-50">
       <div className="container">
-        <span className="tit2 t-center">History</span>
+        <span className="tit2 t-center">Geschiedenis</span>
         <Nav current="history" />
         <HistoryTable game={game} onUpdateGame={updateGame} />
       </div>

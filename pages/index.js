@@ -30,20 +30,20 @@ export default function Home() {
         <div className="card">
           <h2 className="section-title">Start</h2>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 12 }}>
-            <Link href="/new-game" className="primary">New game</Link>
+            <Link href="/new-game" className="primary">Nieuw spel</Link>
             {hasGames ? (
-              <Link href="/continue">Continue game</Link>
+              <Link href="/continue">Verder spelen</Link>
             ) : (
-              <span className="disabled-link">Continue game</span>
+              <span className="disabled-link">Verder spelen</span>
             )}
 
             <Link href="/game" className={!appState.currentGameId ? "disabled-link" : ""} onClick={(e) => {
               if (!appState.currentGameId) e.preventDefault();
-            }}>Current game</Link>
+            }}>Huidig spel</Link>
           </div>
 
           <div style={{ marginTop: 10, opacity: 0.7, fontSize: 13 }}>
-            Stored locally on this device (localStorage).
+            Lokaal opgeslagen op dit apparaat (localStorage).
           </div>
         </div>
       </div>
