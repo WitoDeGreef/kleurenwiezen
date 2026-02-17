@@ -72,16 +72,26 @@ export default function HistoryTable({ game, onUpdateGame }) {
             // Check if all trumps bonus applies
             const usesAllTrumpsBonus = gt?.allTrumpsBonus != null && r.trumpCount === 13;
             
-            // Calculate trump bonus if applicable
+            // Calculate points based on trump count
             const hasTrumps = gt?.minTrumps != null && gt?.extraPointsPerTrump != null && r.trumpCount;
-            const trumpBonus = usesAllTrumpsBonus 
-              ? 0
-              : (hasTrumps && r.trumpCount > (gt.minTrumps || 0)
-                ? (r.trumpCount - (gt.minTrumps || 0)) * (gt.extraPointsPerTrump || 0)
-                : 0);
-            const effectivePoints = usesAllTrumpsBonus 
-              ? gt.allTrumpsBonus
-              : (gt?.basePoints || 0) + trumpBonus;
+            let effectivePoints;
+            if (usesAllTrumpsBonus) {
+              // All trumps: use special bonus
+              effectivePoints = gt.allTrumpsBonus;
+            } else if (hasTrumps && r.trumpCount < (gt.minTrumps || 0)) {
+              // Below minimum: negate (basePoints + penalty for missing trumps)
+              const missingTrumps = (gt.minTrumps || 0) - r.trumpCount;
+              const penalty = missingTrumps * (gt.extraPointsPerTrump || 0);
+              effectivePoints = -((gt?.basePoints || 0) + penalty);
+            } else if (hasTrumps && r.trumpCount > (gt.minTrumps || 0)) {
+              // Above minimum: add bonus for extra trumps
+              const extraTrumps = r.trumpCount - (gt.minTrumps || 0);
+              const bonus = extraTrumps * (gt.extraPointsPerTrump || 0);
+              effectivePoints = (gt?.basePoints || 0) + bonus;
+            } else {
+              // At minimum or no trumps: use base points
+              effectivePoints = gt?.basePoints || 0;
+            }
 
             return (
               <div 

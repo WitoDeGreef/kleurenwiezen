@@ -21,25 +21,45 @@ export default function NewRoundForm({ game, onUpdateGame }) {
     [game.gameTypes, gameTypeId]
   );
 
+  // Calculate current dealer
+  const currentDealer = game.players[(game.currentDealerIndex || 0) % game.players.length];
+  const isFivePlayerGame = game.players.length === 5;
+
   const hasTrumps = gameType?.minTrumps != null && gameType?.extraPointsPerTrump != null;
   const effectiveTrumpCount = hasTrumps && trumpCount ? parseInt(trumpCount, 10) : 0;
   
   // Check if all trumps bonus applies (when player achieves all 13 trumps)
   const usesAllTrumpsBonus = gameType?.allTrumpsBonus != null && effectiveTrumpCount === 13;
   
-  const trumpBonus = usesAllTrumpsBonus 
-    ? 0 // Don't add regular trump bonus when using all trumps bonus
-    : (hasTrumps && effectiveTrumpCount > (gameType.minTrumps || 0) 
-      ? (effectiveTrumpCount - (gameType.minTrumps || 0)) * (gameType.extraPointsPerTrump || 0)
-      : 0);
+  // Calculate points based on trump count
+  let basePoints;
+  if (usesAllTrumpsBonus) {
+    // All trumps: use special bonus
+    basePoints = gameType.allTrumpsBonus;
+  } else if (hasTrumps && effectiveTrumpCount !== 0 && effectiveTrumpCount < (gameType.minTrumps || 0)) {
+    // Below minimum: negate (basePoints + penalty for missing trumps)
+    const missingTrumps = (gameType.minTrumps || 0) - effectiveTrumpCount;
+    const penalty = missingTrumps * (gameType.extraPointsPerTrump || 0);
+    basePoints = -((gameType?.basePoints || 0) + penalty);
+  } else if (hasTrumps && effectiveTrumpCount > (gameType.minTrumps || 0)) {
+    // Above minimum: add bonus for extra trumps
+    const extraTrumps = effectiveTrumpCount - (gameType.minTrumps || 0);
+    const bonus = extraTrumps * (gameType.extraPointsPerTrump || 0);
+    basePoints = (gameType?.basePoints || 0) + bonus;
+  } else {
+    // At minimum or no trumps: use base points
+    basePoints = gameType?.basePoints || 0;
+  }
   
-  const basePoints = usesAllTrumpsBonus 
-    ? gameType.allTrumpsBonus 
-    : (gameType?.basePoints || 0) + trumpBonus;
   const total = basePoints * (Number(multiplier) || 1);
   const maxWinners = gameType?.maxWinners || game.players.length - 1;
 
   function toggleWinner(pid) {
+    // Prevent dealer from being selected in 5-player game
+    if (isFivePlayerGame && pid === currentDealer?.id) {
+      return;
+    }
+    
     setWinnerIds((prev) => {
       if (prev.includes(pid)) {
         return prev.filter((x) => x !== pid);
@@ -61,12 +81,22 @@ export default function NewRoundForm({ game, onUpdateGame }) {
     // Calculate effective base points including trump bonus
     const effectiveBasePoints = basePoints; // This already includes trump bonus from useMemo
     
+    // For 5 players, dealer doesn't receive points
+    const playersForDistribution = isFivePlayerGame
+      ? game.players.filter(p => p.id !== currentDealer?.id)
+      : game.players;
+    
     const deltas = computeDeltas({
-      players: game.players,
+      players: playersForDistribution,
       basePoints: effectiveBasePoints,
       winnerIds,
       multiplier: m,
     });
+    
+    // If 5 players, ensure dealer has 0 points
+    if (isFivePlayerGame && currentDealer) {
+      deltas[currentDealer.id] = 0;
+    }
 
     const round = {
       id: rid(),
@@ -89,15 +119,25 @@ export default function NewRoundForm({ game, onUpdateGame }) {
   }
 
   function addDealerPenalty() {
-    const currentDealer = game.players[(game.currentDealerIndex || 0) % game.players.length];
+    if (!currentDealer) return;
+    
     const penaltyAmount = game.players.length === 4 
       ? (game.dealerPenalty4Players || 3) 
       : (game.dealerPenalty5Players || 4);
     
-    // Create deltas with only the dealer getting negative points
+    // Calculate points to distribute among other players (with proper integer distribution)
+    const otherPlayers = game.players.filter(p => p.id !== currentDealer.id);
+    const basePoints = Math.floor(penaltyAmount / otherPlayers.length);
+    let remainder = penaltyAmount - (basePoints * otherPlayers.length);
+    
+    // Create deltas: dealer gets negative, others get positive (divided equally with remainder)
     const deltas = {};
-    game.players.forEach((p) => {
-      deltas[p.id] = p.id === currentDealer.id ? -penaltyAmount : 0;
+    deltas[currentDealer.id] = -penaltyAmount;
+    
+    otherPlayers.forEach((p) => {
+      const extra = remainder > 0 ? 1 : 0;
+      deltas[p.id] = basePoints + extra;
+      remainder -= extra;
     });
 
     const round = {
@@ -115,10 +155,12 @@ export default function NewRoundForm({ game, onUpdateGame }) {
   }
 
   // Validation: check if enough winners are selected based on game type requirements
-  const needsExactWinners = gameType?.maxWinners != null && gameType.maxWinners < game.players.length - 1;
+  // For 5-player games, dealer is excluded from playing
+  const activePlayers = isFivePlayerGame ? game.players.length - 1 : game.players.length;
+  const needsExactWinners = gameType?.maxWinners != null && gameType.maxWinners < activePlayers - 1;
   const hasCorrectWinnerCount = needsExactWinners 
     ? winnerIds.length === gameType.maxWinners
-    : (winnerIds.length > 0 && winnerIds.length < game.players.length);
+    : (winnerIds.length > 0 && winnerIds.length < activePlayers);
   
   const invalid = !hasCorrectWinnerCount;
 
@@ -158,17 +200,17 @@ export default function NewRoundForm({ game, onUpdateGame }) {
         {hasTrumps && (
           <div>
             <label className="form-label">
-              Aantal troeven {gameType.minTrumps > 0 ? `(min ${gameType.minTrumps})` : '(variabel)'}
+              Aantal troeven {gameType.minTrumps > 0 ? `(basis ${gameType.minTrumps})` : '(variabel)'}
             </label>
             <input 
               type="number"
               inputMode="numeric"
               pattern="[0-9]*"
-              min={gameType.minTrumps || 0} 
+              min={0} 
               max={13} 
               value={trumpCount} 
               onChange={(e) => setTrumpCount(e.target.value)}
-              placeholder={gameType.minTrumps > 0 ? `Min ${gameType.minTrumps}` : 'Aantal'}
+              placeholder={gameType.minTrumps > 0 ? `Basis ${gameType.minTrumps}` : 'Aantal'}
             />
           </div>
         )}
@@ -184,24 +226,38 @@ export default function NewRoundForm({ game, onUpdateGame }) {
           Winnaars {needsExactWinners 
             ? `(exact ${gameType.maxWinners} ${gameType.maxWinners > 1 ? 'spelers' : 'speler'})` 
             : maxWinners && `(max ${maxWinners})`}
+          {isFivePlayerGame && <span style={{ opacity: 0.7, fontWeight: 400 }}> · Dealer speelt niet mee</span>}
         </label>
         <div className="flex flex-wrap gap-8">
           {game.players.map((p) => {
             const active = winnerIds.includes(p.id);
+            const isDealer = isFivePlayerGame && p.id === currentDealer?.id;
             return (
-              <button key={p.id} onClick={() => toggleWinner(p.id)} className={active ? "active" : ""} type="button">
-                {active ? "✓ " : ""}{p.name}
+              <button 
+                key={p.id} 
+                onClick={() => toggleWinner(p.id)} 
+                className={active ? "active" : ""} 
+                disabled={isDealer}
+                type="button"
+                style={isDealer ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
+              >
+                {active ? "✓ " : ""}{p.name}{isDealer ? " (deler)" : ""}
               </button>
             );
           })}
         </div>
         <div style={{ marginTop: 10, fontSize: 14, opacity: 0.8, lineHeight: 1.5 }}>
-          Verdeling: <b>+{total}</b> verdeeld over winnaars, <b>-{total}</b> verdeeld over anderen.
+          Verdeling: <b>{total >= 0 ? `+${total}` : total}</b> verdeeld over winnaars, <b>{total >= 0 ? `-${total}` : `+${Math.abs(total)}`}</b> verdeeld over anderen{isFivePlayerGame && ', dealer krijgt 0'}.
           {usesAllTrumpsBonus && (
             <span> (Alle troeven bonus: {gameType.allTrumpsBonus} punten)</span>
           )}
-          {!usesAllTrumpsBonus && hasTrumps && trumpBonus > 0 && (
-            <span> (Inclusief {trumpBonus} bonuspunten voor {effectiveTrumpCount - (gameType.minTrumps || 0)} {gameType.minTrumps > 0 ? 'extra troeven' : 'troeven'})</span>
+          {!usesAllTrumpsBonus && hasTrumps && effectiveTrumpCount !== 0 && effectiveTrumpCount !== (gameType.minTrumps || 0) && (
+            <span>
+              {effectiveTrumpCount < (gameType.minTrumps || 0) 
+                ? ` (Straf: ${(gameType.minTrumps || 0) - effectiveTrumpCount} troeven te weinig, totaal negatief)`
+                : ` (Bonus: ${effectiveTrumpCount - (gameType.minTrumps || 0)} extra troeven)`
+              }
+            </span>
           )}
         </div>
       </div>

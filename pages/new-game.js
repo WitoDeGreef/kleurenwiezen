@@ -33,12 +33,14 @@ export default function NewGamePage() {
   }
 
   function start() {
-    const playerNames = names.map((n) => n.trim()).filter(Boolean);
+    // Use entered names or fallback to default placeholder names
+    const playerNames = names.map((n, i) => {
+      const trimmed = n.trim();
+      return trimmed || `Speler ${i + 1}`;
+    });
 
     const game = createGame({
-      playerNames: playerNames.length
-        ? playerNames
-        : ["Speler 1", "Speler 2", "Speler 3", "Speler 4"],
+      playerNames,
     });
 
     let next = upsertGame(appState, game);

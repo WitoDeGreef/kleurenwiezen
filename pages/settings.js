@@ -136,6 +136,9 @@ export default function SettingsPage() {
                 />
               </div>
             </div>
+            <div style={{ marginTop: 10, fontSize: 13, opacity: 0.7, lineHeight: 1.5 }}>
+              Bij 5 spelers speelt de dealer niet mee in reguliere rondes (krijgt 0 punten), maar kan wel verkeerd delen en dan strafpunten krijgen.
+            </div>
           </div>
         </div>
         
