@@ -4,8 +4,9 @@ const nextConfig = {
 
     reactStrictMode: true,
   
-    // Add basePath
-    basePath: process.env.NODE_ENV === "production" ? "/howyoudoin" : '',
+    // Add basePath and assetPrefix for GitHub Pages
+    basePath: process.env.NODE_ENV === "production" ? "/kleurenwiezen" : '',
+    assetPrefix: process.env.NODE_ENV === "production" ? "/kleurenwiezen/" : '',
 
     images: {
         unoptimized: true,
