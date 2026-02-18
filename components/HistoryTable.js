@@ -3,7 +3,25 @@
 
 export default function HistoryTable({ game, onUpdateGame }) {
   function deleteRound(id) {
-    onUpdateGame({ ...game, rounds: game.rounds.filter((r) => r.id !== id) });
+    // Find the round being deleted
+    const roundToDelete = game.rounds.find((r) => r.id === id);
+    
+    // Filter out the round
+    const updatedRounds = game.rounds.filter((r) => r.id !== id);
+    
+    // If it's a regular round (not a dealer penalty), revert the dealer
+    if (roundToDelete && !roundToDelete.isDealerPenalty) {
+      const previousDealerIndex = (game.currentDealerIndex - 1 + game.players.length) % game.players.length;
+      onUpdateGame({ ...game, rounds: updatedRounds, currentDealerIndex: previousDealerIndex });
+    } else {
+      // Dealer penalty rounds don't change the dealer, so just remove the round
+      onUpdateGame({ ...game, rounds: updatedRounds });
+    }
+  }
+
+  // Check if a round is the most recent (first in array since new rounds are prepended)
+  function isMostRecent(roundId) {
+    return game.rounds.length > 0 && game.rounds[0].id === roundId;
   }
 
   return (
@@ -57,8 +75,13 @@ export default function HistoryTable({ game, onUpdateGame }) {
                   </div>
 
                   <div style={{ marginTop: "12px" }}>
-                    <button onClick={() => deleteRound(r.id)} className="danger" style={{ width: "100%" }}>
-                      Verwijderen
+                    <button 
+                      onClick={() => deleteRound(r.id)} 
+                      className="danger" 
+                      style={{ width: "100%" }}
+                      disabled={!isMostRecent(r.id)}
+                    >
+                      {isMostRecent(r.id) ? 'Verwijderen' : 'Alleen laatste ronde kan verwijderd worden'}
                     </button>
                   </div>
                 </div>
@@ -140,8 +163,13 @@ export default function HistoryTable({ game, onUpdateGame }) {
                 </div>
 
                 <div style={{ marginTop: "12px" }}>
-                  <button onClick={() => deleteRound(r.id)} className="danger" style={{ width: "100%" }}>
-                    Verwijderen
+                  <button 
+                    onClick={() => deleteRound(r.id)} 
+                    className="danger" 
+                    style={{ width: "100%" }}
+                    disabled={!isMostRecent(r.id)}
+                  >
+                    {isMostRecent(r.id) ? 'Verwijderen' : 'Alleen laatste ronde kan verwijderd worden'}
                   </button>
                 </div>
               </div>
