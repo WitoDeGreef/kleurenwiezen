@@ -1,7 +1,7 @@
 
 
-import { useMemo, useState } from "react";
-import { clampInt, computeDeltas } from "../lib/scoring";
+import { useMemo, useState, useEffect } from "react";
+import { clampInt, computeDeltas, computeDuoMiserieDeltas } from "../lib/scoring";
 
 function rid() {
   return `r_${Math.random().toString(16).slice(2)}_${Date.now().toString(16)}`;
@@ -12,6 +12,7 @@ export default function NewRoundForm({ game, onUpdateGame }) {
 
   const [gameTypeId, setGameTypeId] = useState(firstGT);
   const [winnerIds, setWinnerIds] = useState([]);
+  const [duoDeclarerIds, setDuoDeclarerIds] = useState([]); // For duo miserie: the 2 declarers
   const [multiplier, setMultiplier] = useState(1);
   const [trumpCount, setTrumpCount] = useState("");
   const [note, setNote] = useState("");
@@ -20,6 +21,15 @@ export default function NewRoundForm({ game, onUpdateGame }) {
     () => game.gameTypes.find((g) => g.id === gameTypeId) || game.gameTypes[0],
     [game.gameTypes, gameTypeId]
   );
+
+  // Check if this is a duo miserie game
+  const isDuoMiserie = gameType?.supportsDuo === true;
+
+  // Clear duo state when game type changes
+  useEffect(() => {
+    setDuoDeclarerIds([]);
+    setWinnerIds([]);
+  }, [gameTypeId]);
 
   // Calculate current dealer
   const currentDealer = game.players[(game.currentDealerIndex || 0) % game.players.length];
@@ -54,6 +64,43 @@ export default function NewRoundForm({ game, onUpdateGame }) {
   const total = basePoints * (Number(multiplier) || 1);
   const maxWinners = gameType?.maxWinners || game.players.length - 1;
 
+  // For duo miserie: toggle selecting the 2 declarers
+  function toggleDuoDeclarer(pid) {
+    if (isFivePlayerGame && pid === currentDealer?.id) {
+      return;
+    }
+    
+    setDuoDeclarerIds((prev) => {
+      if (prev.includes(pid)) {
+        // Remove from declarers
+        const newDeclarers = prev.filter((x) => x !== pid);
+        // Also remove from winners if present
+        setWinnerIds((w) => w.filter((x) => x !== pid));
+        return newDeclarers;
+      }
+      // Check if we've reached 2 declarers
+      if (prev.length >= 2) {
+        return prev;
+      }
+      return [...prev, pid];
+    });
+  }
+
+  // For duo miserie: toggle which declarers succeeded
+  function toggleDuoSuccess(pid) {
+    // Can only mark declarers as successful
+    if (!duoDeclarerIds.includes(pid)) {
+      return;
+    }
+    
+    setWinnerIds((prev) => {
+      if (prev.includes(pid)) {
+        return prev.filter((x) => x !== pid);
+      }
+      return [...prev, pid];
+    });
+  }
+
   function toggleWinner(pid) {
     // Prevent dealer from being selected in 5-player game
     if (isFivePlayerGame && pid === currentDealer?.id) {
@@ -76,6 +123,11 @@ export default function NewRoundForm({ game, onUpdateGame }) {
     const gt = game.gameTypes.find((g) => g.id === gameTypeId);
     if (!gt) return;
 
+    // Validate duo miserie requires 2 declarers
+    if (isDuoMiserie && duoDeclarerIds.length !== 2) {
+      return; // Need exactly 2 declarers for duo miserie
+    }
+
     const m = clampInt(parseInt(multiplier, 10) || 1, 1, 20);
     
     // Calculate effective base points including trump bonus
@@ -86,12 +138,26 @@ export default function NewRoundForm({ game, onUpdateGame }) {
       ? game.players.filter(p => p.id !== currentDealer?.id)
       : game.players;
     
-    const deltas = computeDeltas({
-      players: playersForDistribution,
-      basePoints: effectiveBasePoints,
-      winnerIds,
-      multiplier: m,
-    });
+    let deltas;
+    
+    if (isDuoMiserie) {
+      // Use duo miserie scoring
+      deltas = computeDuoMiserieDeltas({
+        players: playersForDistribution,
+        basePoints: effectiveBasePoints,
+        duoDeclarerIds,
+        winnerIds,
+        multiplier: m,
+      });
+    } else {
+      // Use regular scoring
+      deltas = computeDeltas({
+        players: playersForDistribution,
+        basePoints: effectiveBasePoints,
+        winnerIds,
+        multiplier: m,
+      });
+    }
     
     // If 5 players, ensure dealer has 0 points
     if (isFivePlayerGame && currentDealer) {
@@ -102,8 +168,9 @@ export default function NewRoundForm({ game, onUpdateGame }) {
       id: rid(),
       ts: Date.now(),
       gameTypeId,
-      declarerId: winnerIds[0] || null,
+      declarerId: (isDuoMiserie ? duoDeclarerIds[0] : winnerIds[0]) || null,
       winnerIds: [...winnerIds],
+      duoDeclarerIds: isDuoMiserie ? [...duoDeclarerIds] : undefined,
       multiplier: m,
       trumpCount: hasTrumps && effectiveTrumpCount ? effectiveTrumpCount : undefined,
       note: note.trim() || undefined,
@@ -113,6 +180,7 @@ export default function NewRoundForm({ game, onUpdateGame }) {
     const nextDealerIndex = ((game.currentDealerIndex || 0) + 1) % game.players.length;
     onUpdateGame({ ...game, rounds: [round, ...game.rounds], currentDealerIndex: nextDealerIndex });
     setWinnerIds([]);
+    setDuoDeclarerIds([]);
     setMultiplier(1);
     setTrumpCount("");
     setNote("");
@@ -158,11 +226,21 @@ export default function NewRoundForm({ game, onUpdateGame }) {
   // For 5-player games, dealer is excluded from playing
   const activePlayers = isFivePlayerGame ? game.players.length - 1 : game.players.length;
   const needsExactWinners = gameType?.maxWinners != null && gameType.maxWinners < activePlayers - 1;
-  const hasCorrectWinnerCount = needsExactWinners 
-    ? winnerIds.length === gameType.maxWinners
-    : (winnerIds.length > 0 && winnerIds.length < activePlayers);
   
-  const invalid = !hasCorrectWinnerCount;
+  let hasCorrectWinnerCount;
+  if (isDuoMiserie) {
+    // For duo miserie, need exactly 2 declarers selected
+    hasCorrectWinnerCount = duoDeclarerIds.length === 2;
+  } else {
+    hasCorrectWinnerCount = needsExactWinners 
+      ? winnerIds.length === gameType.maxWinners
+      : (winnerIds.length > 0 && winnerIds.length < activePlayers);
+  }
+  
+  // Validate trump count is filled in when required
+  const trumpCountValid = !hasTrumps || (trumpCount && trumpCount.trim() !== '');
+  
+  const invalid = !hasCorrectWinnerCount || !trumpCountValid;
 
   return (
     <div className="card">
@@ -211,6 +289,7 @@ export default function NewRoundForm({ game, onUpdateGame }) {
               value={trumpCount} 
               onChange={(e) => setTrumpCount(e.target.value)}
               placeholder={gameType.minTrumps > 0 ? `Basis ${gameType.minTrumps}` : 'Aantal'}
+              required
             />
           </div>
         )}
@@ -221,46 +300,112 @@ export default function NewRoundForm({ game, onUpdateGame }) {
         </div>
       </div>
 
-      <div style={{ marginTop: 12 }}>
-        <label className="form-label">
-          Winnaars {needsExactWinners 
-            ? `(exact ${gameType.maxWinners} ${gameType.maxWinners > 1 ? 'spelers' : 'speler'})` 
-            : maxWinners && `(max ${maxWinners})`}
-          {isFivePlayerGame && <span style={{ opacity: 0.7, fontWeight: 400 }}> · Dealer speelt niet mee</span>}
-        </label>
-        <div className="flex flex-wrap gap-8">
-          {game.players.map((p) => {
-            const active = winnerIds.includes(p.id);
-            const isDealer = isFivePlayerGame && p.id === currentDealer?.id;
-            return (
-              <button 
-                key={p.id} 
-                onClick={() => toggleWinner(p.id)} 
-                className={active ? "active" : ""} 
-                disabled={isDealer}
-                type="button"
-                style={isDealer ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
-              >
-                {active ? "✓ " : ""}{p.name}{isDealer ? " (deler)" : ""}
-              </button>
-            );
-          })}
-        </div>
-        <div style={{ marginTop: 10, fontSize: 14, opacity: 0.8, lineHeight: 1.5 }}>
-          Verdeling: <b>{total >= 0 ? `+${total}` : total}</b> verdeeld over winnaars, <b>{total >= 0 ? `-${total}` : `+${Math.abs(total)}`}</b> verdeeld over anderen{isFivePlayerGame && ', dealer krijgt 0'}.
-          {usesAllTrumpsBonus && (
-            <span> (Alle troeven bonus: {gameType.allTrumpsBonus} punten)</span>
+      {isDuoMiserie ? (
+        // Duo Miserie Mode: Select 2 declarers, then mark success
+        <>
+          <div style={{ marginTop: 12 }}>
+            <label className="form-label">
+              Selecteer 2 spelers (duo)
+              {isFivePlayerGame && <span style={{ opacity: 0.7, fontWeight: 400 }}> · Dealer speelt niet mee</span>}
+            </label>
+            <div className="flex flex-wrap gap-8">
+              {game.players.map((p) => {
+                const selected = duoDeclarerIds.includes(p.id);
+                const isDealer = isFivePlayerGame && p.id === currentDealer?.id;
+                return (
+                  <button 
+                    key={p.id} 
+                    onClick={() => toggleDuoDeclarer(p.id)} 
+                    className={selected ? "active" : ""} 
+                    disabled={isDealer}
+                    type="button"
+                    style={isDealer ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
+                  >
+                    {selected ? "✓ " : ""}{p.name}{isDealer ? " (deler)" : ""}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {duoDeclarerIds.length === 2 && (
+            <div style={{ marginTop: 12 }}>
+              <label className="form-label">
+                Geslaagd (markeer wie het gehaald heeft)
+              </label>
+              <div className="flex flex-wrap gap-8">
+                {duoDeclarerIds.map((pid) => {
+                  const player = game.players.find((p) => p.id === pid);
+                  const succeeded = winnerIds.includes(pid);
+                  return (
+                    <button 
+                      key={pid} 
+                      onClick={() => toggleDuoSuccess(pid)} 
+                      className={succeeded ? "active" : ""} 
+                      type="button"
+                    >
+                      {succeeded ? "✓ " : ""}{player?.name}
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{ marginTop: 10, fontSize: 14, opacity: 0.8, lineHeight: 1.5 }}>
+                {winnerIds.length === 2 && (
+                  <span>Beide geslaagd: elk +{total}, anderen elk -{total}</span>
+                )}
+                {winnerIds.length === 0 && (
+                  <span>Beide niet geslaagd: elk -{total}, anderen elk +{total}</span>
+                )}
+                {winnerIds.length === 1 && (
+                  <span>Eén geslaagd, één niet: geslaagde geeft {total} aan niet-geslaagde, anderen ongewijzigd</span>
+                )}
+              </div>
+            </div>
           )}
-          {!usesAllTrumpsBonus && hasTrumps && effectiveTrumpCount !== 0 && effectiveTrumpCount !== (gameType.minTrumps || 0) && (
-            <span>
-              {effectiveTrumpCount < (gameType.minTrumps || 0) 
-                ? ` (Straf: ${(gameType.minTrumps || 0) - effectiveTrumpCount} troeven te weinig, totaal negatief)`
-                : ` (Bonus: ${effectiveTrumpCount - (gameType.minTrumps || 0)} extra troeven)`
-              }
-            </span>
-          )}
+        </>
+      ) : (
+        // Regular Mode: Select winners
+        <div style={{ marginTop: 12 }}>
+          <label className="form-label">
+            Winnaars {needsExactWinners 
+              ? `(exact ${gameType.maxWinners} ${gameType.maxWinners > 1 ? 'spelers' : 'speler'})` 
+              : maxWinners && `(max ${maxWinners})`}
+            {isFivePlayerGame && <span style={{ opacity: 0.7, fontWeight: 400 }}> · Dealer speelt niet mee</span>}
+          </label>
+          <div className="flex flex-wrap gap-8">
+            {game.players.map((p) => {
+              const active = winnerIds.includes(p.id);
+              const isDealer = isFivePlayerGame && p.id === currentDealer?.id;
+              return (
+                <button 
+                  key={p.id} 
+                  onClick={() => toggleWinner(p.id)} 
+                  className={active ? "active" : ""} 
+                  disabled={isDealer}
+                  type="button"
+                  style={isDealer ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
+                >
+                  {active ? "✓ " : ""}{p.name}{isDealer ? " (deler)" : ""}
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ marginTop: 10, fontSize: 14, opacity: 0.8, lineHeight: 1.5 }}>
+            Verdeling: <b>{total >= 0 ? `+${total}` : total}</b> verdeeld over winnaars, <b>{total >= 0 ? `-${total}` : `+${Math.abs(total)}`}</b> verdeeld over anderen{isFivePlayerGame && ', dealer krijgt 0'}.
+            {usesAllTrumpsBonus && (
+              <span> (Alle troeven bonus: {gameType.allTrumpsBonus} punten)</span>
+            )}
+            {!usesAllTrumpsBonus && hasTrumps && effectiveTrumpCount !== 0 && effectiveTrumpCount !== (gameType.minTrumps || 0) && (
+              <span>
+                {effectiveTrumpCount < (gameType.minTrumps || 0) 
+                  ? ` (Straf: ${(gameType.minTrumps || 0) - effectiveTrumpCount} troeven te weinig, totaal negatief)`
+                  : ` (Bonus: ${effectiveTrumpCount - (gameType.minTrumps || 0)} extra troeven)`
+                }
+              </span>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       <div style={{ marginTop: 14, display: "flex", gap: 8, flexWrap: "wrap" }}>
         <button onClick={addRound} className="primary" disabled={invalid}>
@@ -269,6 +414,7 @@ export default function NewRoundForm({ game, onUpdateGame }) {
         <button
           onClick={() => {
             setWinnerIds([]);
+            setDuoDeclarerIds([]);
             setMultiplier(1);
             setTrumpCount("");
             setNote("");
@@ -288,9 +434,11 @@ export default function NewRoundForm({ game, onUpdateGame }) {
 
       {invalid && (
         <div style={{ marginTop: 10, color: "#b45309" }}>
-          {needsExactWinners 
-            ? `Selecteer exact ${gameType.maxWinners} speler${gameType.maxWinners > 1 ? 's' : ''} (${winnerIds.length} geselecteerd).`
-            : 'Kies minimaal 1 winnaar en niet iedereen.'}
+          {!trumpCountValid 
+            ? 'Vul het aantal troeven in.'
+            : needsExactWinners 
+              ? `Selecteer exact ${gameType.maxWinners} speler${gameType.maxWinners > 1 ? 's' : ''} (${winnerIds.length} geselecteerd).`
+              : 'Kies minimaal 1 winnaar en niet iedereen.'}
         </div>
       )}
     </div>

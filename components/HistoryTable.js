@@ -90,7 +90,15 @@ export default function HistoryTable({ game, onUpdateGame }) {
 
             // Handle regular game rounds
             const gt = game.gameTypes.find((g) => g.id === r.gameTypeId);
-            const winners = game.players.filter((p) => r.winnerIds.includes(p.id)).map((p) => p.name);
+            const isDuoRound = r.duoDeclarerIds && r.duoDeclarerIds.length === 2;
+            
+            let declarers, winners;
+            if (isDuoRound) {
+              declarers = game.players.filter((p) => r.duoDeclarerIds.includes(p.id)).map((p) => p.name);
+              winners = game.players.filter((p) => r.winnerIds.includes(p.id)).map((p) => p.name);
+            } else {
+              winners = game.players.filter((p) => r.winnerIds.includes(p.id)).map((p) => p.name);
+            }
             
             // Check if all trumps bonus applies
             const usesAllTrumpsBonus = gt?.allTrumpsBonus != null && r.trumpCount === 13;
@@ -140,9 +148,20 @@ export default function HistoryTable({ game, onUpdateGame }) {
                 </div>
 
                 <div style={{ marginTop: "12px" }}>
-                  <div style={{ fontWeight: 500, fontSize: "14px", marginBottom: "6px", opacity: 0.8 }}>
-                    Winnaars: <span style={{ fontWeight: 600, opacity: 1 }}>{winners.join(", ") || "-"}</span>
-                  </div>
+                  {isDuoRound ? (
+                    <>
+                      <div style={{ fontWeight: 500, fontSize: "14px", marginBottom: "6px", opacity: 0.8 }}>
+                        Duo: <span style={{ fontWeight: 600, opacity: 1 }}>{declarers.join(" & ")}</span>
+                      </div>
+                      <div style={{ fontSize: "14px", opacity: 0.7 }}>
+                        {winners.length === 2 ? "Beide geslaagd" : winners.length === 0 ? "Beide niet geslaagd" : `${winners[0]} geslaagd`}
+                      </div>
+                    </>
+                  ) : (
+                    <div style={{ fontWeight: 500, fontSize: "14px", marginBottom: "6px", opacity: 0.8 }}>
+                      Winnaars: <span style={{ fontWeight: 600, opacity: 1 }}>{winners.join(", ") || "-"}</span>
+                    </div>
+                  )}
                 </div>
 
                 <div style={{ marginTop: "12px", padding: "12px", backgroundColor: "#fff", borderRadius: "6px" }}>
